@@ -103,7 +103,7 @@ class Neural:
         """learning rate is the amount the weights are updated during training"""
 
     def back_propagation(self, learning_rate):
-        for epoch in range(5000):
+        for epoch in range(200):
             if epoch%20000 == 0:
                 epoch/=1.1
             errors = []
@@ -173,14 +173,14 @@ class Neural:
             print(f"Mean error: {np.mean(errors)}")
 
 
-number_of_inputs = 7
+number_of_inputs = 3
 
-data = Data(200,number_of_inputs)
+data = Data(1000,number_of_inputs)
 data.create_data()
 
-neural = Neural(data,2,number_of_inputs)
+neural = Neural(data,10,number_of_inputs)
 #neural.back_propagation(0.09)
-neural.random_back_propagation()
+#neural.random_back_propagation()
 neural.back_propagation(0.1)
 print("#################################PREDICTIONS############################################")
 print(f"1 + 7 = {neural.compute_output([1, 7,2])}")
@@ -193,7 +193,7 @@ for i in range(10):
     rand_inputs = []
     for i in range(number_of_inputs):
         rand_inputs.append(randint(0, 15))
-    print(f" sum of {rand_inputs} = {neural.compute_output(rand_inputs)}")
+    print(f" sum of {rand_inputs} = {neural.compute_output(rand_inputs)} actual = {sum(rand_inputs)}")
 
 #while True:
  #   val = input("value1")
