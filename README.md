@@ -9,7 +9,5 @@ Key Features:
 - **Randomly Generated Training Data**: The neural network is trained using randomly generated data, ensuring a diverse range of input combinations. This helps the network generalize and handle various input scenarios, enhancing its ability to perform addition accurately.
 - **Performance Trade-off**: It is important to note that increasing the number of inputs and nodes in the hidden layer can lead to slower training and decreased precision.
 
-Please note that the font name "Neural_Network_Addition" used here is for illustrative purposes only. You can choose any suitable font name for your readme.
 
-For detailed instructions, code examples, and implementation details, please refer to the project repository.
 
