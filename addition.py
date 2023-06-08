@@ -5,28 +5,38 @@ import sys
 class Data:
     data_dict = {}
 
-    def __init__(self, limit):
+    def __init__(self, limit,number_of_inputs):
         self.limit = limit
 
     """creates data but beware that the limit may not be the same as the size of the dictionary"""
 
     def create_data(self):
+        
         for i in range(self.limit):
-            num1 = randint(0, 10)
-            num2 = randint(0, 10)
-            self.data_dict[(num1, num2)] = num1 + num2
+            inputs = []
+            for i in  range(number_of_inputs):
+                inputs.append(randint(0,10))
+            
+            self.data_dict[tuple(inputs)] =  sum(inputs)
 
 
 """ you compare the error with every test in the data set and find weights that minimise the error"""
 
 
 class Neural:
-    def __init__(self, data,num_of_nodes):
+    def __init__(self, data,num_of_nodes,num_of_inputs):
 
         self.num_of_nodes = num_of_nodes
+        self.num_of_inputs = num_of_inputs
+         
+        self.inputs = []
+        
+        for i in range(num_of_inputs):
+            self.inputs.append(0)
+
         
         self.first_layer_weights = []
-        for i in range (num_of_nodes * 2):
+        for i in range (num_of_nodes * num_of_inputs):
             self.first_layer_weights.append(uniform(-1, 1))
             
         self.second_layer_weights = []
@@ -43,11 +53,22 @@ class Neural:
 
     """weighted summation with activation function to compute output """
 
-    def compute_output(self, num1, num2):
-        num1, num2 = num1 / 100, num2 / 100
+    def compute_output(self,inputs):
+        
+       # num1, num2 = num1 / 100, num2 / 100
+        inputs = list(inputs)
+        for i in range(len(inputs)):
+            inputs[i] /= 100
         return_value = 0
         for i in range(self.num_of_nodes):
-            return_value+= self.sigmoid((num1 *  self.first_layer_weights[2 * i]) + (num2 *  self.first_layer_weights[2 * i + 1])) * self.second_layer_weights[i]
+            temp_var = 0
+            count = 0
+            for j in inputs:
+               # return_value+= self.sigmoid((num1 *  self.first_layer_weights[2 * i]) + (num2 *  self.first_layer_weights[2 * i + 1])) * self.second_layer_weights[i]
+               temp_var+= j *  self.first_layer_weights[self.num_of_inputs * i + count]
+               count+=1
+            return_value += self.sigmoid(temp_var) * self.second_layer_weights[i]
+            
             
         return 100 * return_value
 
@@ -57,7 +78,7 @@ class Neural:
         """actually,better to find error between all tests. add all the errors up"""
         error = 0
         for key in data.data_dict:
-            error += abs(data.data_dict[key] - self.compute_output(key[0], key[1])) ** 2
+            error += abs(data.data_dict[key] - self.compute_output(key)) ** 2
         return error / len(data.data_dict)
 
     # return abs(actual - self.compute_output(num1,num2))
@@ -77,28 +98,36 @@ class Neural:
                 
             error = self.compare_ouput(self.data)
             print(error)
-        print(self.compute_output(140, 15))
+       # print(self.compute_output([140, 15]))
 
         """learning rate is the amount the weights are updated during training"""
 
     def back_propagation(self, learning_rate):
-        for epoch in range(1000000):
+        for epoch in range(5000):
             if epoch%20000 == 0:
                 epoch/=1.1
             errors = []
             for key in self.data.data_dict:
 
-                num1, num2 = key
+                self.inputs = list(key)
                 target = self.data.data_dict[key]
 
                 # Rescaling everything
-                num1, num2 = num1 / 100, num2 / 100
+                for i in range(len(self.inputs)):
+                    self.inputs[i] /= 100
                 target = target / 100
                 
                 hidden_layer_outputs=[]
+
                 for i in range(self.num_of_nodes):
-                     hidden_layer_outputs.append(self.sigmoid((num1 * self.first_layer_weights[2*i]) + (num2 * self.first_layer_weights[2* i + 1])))
-                                
+                    temp_var = 0
+                    count = 0
+                    for j in self.inputs:
+                       temp_var+= j *  self.first_layer_weights[self.num_of_inputs  * i + count]
+                       count+=1
+                    hidden_layer_outputs.append(self.sigmoid(temp_var)  )   
+                        
+                     
                 output = 0
                 for i in range(self.num_of_nodes):
                     output+=  ( hidden_layer_outputs[i] * self.second_layer_weights[i])           
@@ -124,9 +153,12 @@ class Neural:
                 # d(error)/d(x1) = -2 * (target - output) * z1 * hidden_layer1_output * (1 - hidden_layer1_output) * num1
          
                 for i in range(self.num_of_nodes):
-                    self.first_layer_weights[2 * i]     -= learning_rate * -2 * (target - output) * self.second_layer_weights[i] * hidden_layer_outputs[i] * (1 - hidden_layer_outputs[i]) * num1
-                    self.first_layer_weights[2 * i + 1] -= learning_rate * -2 * (target - output) * self.second_layer_weights[i] * hidden_layer_outputs[i] * (1 - hidden_layer_outputs[i]) * num2
-                                                        
+                    temp_var = 0
+                    count = 0
+                    for j in self.inputs:
+                        self.first_layer_weights[self.num_of_inputs *i + count]  -= learning_rate * -2 * (target - output) * self.second_layer_weights[i] * hidden_layer_outputs[i] * (1 - hidden_layer_outputs[i]) * j
+                        count+=1                             
+                           
                 # derivative of error with respect to z1
                 # d(error)/d(z1) = d(error)/d(output) * d(output)/d(z1)
 
@@ -141,22 +173,31 @@ class Neural:
             print(f"Mean error: {np.mean(errors)}")
 
 
-data = Data(100)
+number_of_inputs = 7
+
+data = Data(200,number_of_inputs)
 data.create_data()
 
-neural = Neural(data,2)
+neural = Neural(data,2,number_of_inputs)
 #neural.back_propagation(0.09)
 neural.random_back_propagation()
 neural.back_propagation(0.1)
 print("#################################PREDICTIONS############################################")
-print(f"1 + 7 = {neural.compute_output(1, 7)}")
-print(f"3 + 2 = {neural.compute_output(3, 2)}")
-print(f"5 + 7 = {neural.compute_output(5, 7)}")
-print(f"10 + 25 = {neural.compute_output(10, 25)}")
+print(f"1 + 7 = {neural.compute_output([1, 7,2])}")
+print(f"3 + 2 = {neural.compute_output([3, 2,3])}")
+print(f"5 + 7 = {neural.compute_output([5, 7, 9])}")
+print(f"10 + 25 = {neural.compute_output([10, 25, 50])}")
 print(neural.compare_ouput(data))
-while True:
-    val = input("value1")
-    val2 = input("value2")
-    print(neural.compute_output(int(val),int(val2)))
+
+for i in range(10):
+    rand_inputs = []
+    for i in range(number_of_inputs):
+        rand_inputs.append(randint(0, 15))
+    print(f" sum of {rand_inputs} = {neural.compute_output(rand_inputs)}")
+
+#while True:
+ #   val = input("value1")
+  #  val2 = input("value2")
+   # print(neural.compute_output(int(val),int(val2)))
 
     
